@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dolly's Halloween 🎃</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Creepster&family=Cinzel+Decorative:wght@400;700&family=Lora:ital,wght@0,300;0,400;1,300;1,400&display=swap');
+
+:root {
+  --orange: #ff6b00;
+  --gold: #f5c842;
+  --deep: #0a0010;
+  --purple: #1a0030;
+  --crimson: #8b0000;
+  --fog: rgba(120, 60, 200, 0.08);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--deep);
+  color: #f0d8c0;
+  font-family: 'Lora', serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+  cursor: none;
+}
+
+/* ── Custom Cursor ── */
+#cursor {
+  position: fixed; width: 32px; height: 32px;
+  pointer-events: none; z-index: 99999;
+  transition: transform 0.15s ease;
+  transform: translate(-50%, -50%);
+  font-size: 26px;
+}
+#cursor-trail {
+  position: fixed; pointer-events: none; z-index: 99998;
+}
+.trail-dot {
+  position: absolute; width: 8px; height: 8px;
+  background: var(--orange); border-radius: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+
+/* ── Canvas Background ── */
+#bg-canvas {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+}
+
+/* ── Moon ── */
+.moon {
+  position: fixed; top: 50px; right: 100px;
+  width: 110px; height: 110px;
+  background: radial-gradient(circle at 40% 35%, #fff8d0, #f5c842 60%, #d4a017);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px rgba(245,200,66,0.15),
+    0 0 40px 15px rgba(245,200,66,0.25),
+    0 0 100px 40px rgba(245,200,66,0.12);
+  z-index: 2;
+  animation: moonPulse 6s ease-in-out infinite alternate;
+}
+.moon::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 65% 65%, rgba(0,0,0,0.15), transparent 60%);
+}
+@keyframes moonPulse {
+  from { box-shadow: 0 0 40px 15px rgba(245,200,66,0.25), 0 0 100px 40px rgba(245,200,66,0.12); }
+  to   { box-shadow: 0 0 60px 25px rgba(245,200,66,0.4), 0 0 150px 60px rgba(245,200,66,0.2); }
+}
+
+/* ── SCENE SECTIONS ── */
+.scene {
+  position: relative; z-index: 10;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 24px;
+}
+
+/* ── INTRO SCENE ── */
+#scene-intro { min-height: 100vh; justify-content: center; }
+
+.title-wrap {
+  text-align: center;
+  opacity: 0; transform: translateY(40px);
+  animation: riseIn 1.2s 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes riseIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.eyebrow {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: clamp(0.85rem, 2vw, 1.1rem);
+  color: var(--gold);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  opacity: 0.7;
+}
+
+h1 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(3rem, 10vw, 7rem);
+  color: var(--orange);
+  line-height: 1;
+  text-shadow:
+    0 0 20px rgba(255,107,0,0.7),
+    0 0 60px rgba(255,107,0,0.3),
+    2px 4px 0 rgba(100,20,0,0.5);
+  letter-spacing: -1px;
+}
+h1 .name {
+  display: block;
+  color: var(--gold);
+  font-size: 0.65em;
+  text-shadow:
+    0 0 20px rgba(245,200,66,0.6),
+    2px 4px 0 rgba(100,70,0,0.5);
+  margin-top: 8px;
+}
+
+.subtitle {
+  margin-top: 20px;
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  color: rgba(240,216,192,0.65);
+  font-style: italic;
+  letter-spacing: 1px;
+}
+
+/* Scroll hint */
+.scroll-hint {
+  position: absolute; bottom: 40px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  opacity: 0; animation: riseIn 1s 2.5s forwards;
+  font-size: 0.8rem; letter-spacing: 3px;
+  color: rgba(255,107,0,0.5); text-transform: uppercase;
+  cursor: pointer;
+}
+.scroll-arrow {
+  width: 24px; height: 24px;
+  border-right: 2px solid var(--orange);
+  border-bottom: 2px solid var(--orange);
+  transform: rotate(45deg);
+  animation: arrowBounce 1.5s ease-in-out infinite;
+  opacity: 0.5;
+}
+@keyframes arrowBounce {
+  0%,100% { transform: rotate(45deg) translateY(0); }
+  50%      { transform: rotate(45deg) translateY(6px); }
+}
+
+/* ── Pumpkin row ── */
+.pumpkin-row {
+  display: flex; gap: clamp(10px,3vw,30px); align-items: flex-end;
+  margin-top: 30px;
+  opacity: 0; animation: riseIn 1s 1.4s forwards;
+}
+.pumpkin {
+  font-size: clamp(3rem, 7vw, 5rem);
+  animation: pumpkinBob var(--pb) ease-in-out infinite alternate;
+  filter: drop-shadow(0 10px 20px rgba(255,107,0,0.4));
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+.pumpkin:hover { filter: drop-shadow(0 0 30px rgba(255,200,0,0.9)) brightness(1.2); }
+@keyframes pumpkinBob {
+  from { transform: translateY(0) rotate(-3deg); }
+  to   { transform: translateY(-14px) rotate(3deg); }
+}
+
+/* ── MESSAGE SCENE ── */
+#scene-message {
+  background: linear-gradient(180deg, transparent, rgba(26,0,48,0.6) 20%, rgba(26,0,48,0.6) 80%, transparent);
+}
+
+.message-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,107,0,0.2);
+  border-top: 2px solid rgba(245,200,66,0.4);
+  border-radius: 24px;
+  padding: clamp(28px,5vw,52px) clamp(24px,6vw,64px);
+  max-width: 620px; width: 100%;
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 20px 80px rgba(0,0,0,0.5),
+    0 0 40px rgba(255,107,0,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  position: relative; overflow: hidden;
+}
+.message-card::before {
+  content: '';
+  position: absolute; top: -1px; left: 20%; right: 20%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.card-header {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  color: var(--orange);
+  text-align: center; margin-bottom: 28px;
+  text-shadow: 0 0 20px rgba(255,107,0,0.4);
+}
+
+.card-body p {
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 2;
+  color: rgba(240,216,192,0.85);
+  text-align: center; margin-bottom: 16px;
+}
+.card-body p em {
+  color: var(--gold); font-style: normal;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 0.9em;
+}
+.card-body p strong {
+  color: var(--orange);
+}
+
+.divider {
+  text-align: center; margin: 20px 0;
+  font-size: 1.4rem; letter-spacing: 10px;
+  opacity: 0.5;
+}
+
+/* ── SURPRISE SCENE ── */
+#scene-surprise { min-height: 60vh; }
+
+.surprise-wrap { text-align: center; }
+.surprise-label {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: rgba(245,200,66,0.6);
+  margin-bottom: 24px;
+  letter-spacing: 2px;
+}
+
+/* 3D Glow Button */
+.glow-btn {
+  position: relative;
+  background: none;
+  border: none; cursor: pointer;
+  outline: none;
+}
+.glow-btn .btn-inner {
+  position: relative;
+  background: linear-gradient(135deg, #ff6b00 0%, #c94b00 50%, #8b2000 100%);
+  color: #fff;
+  padding: 20px 52px;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  letter-spacing: 2px;
+  border-radius: 60px;
+  display: inline-block;
+  box-shadow:
+    0 8px 0 rgba(80,20,0,0.8),
+    0 12px 30px rgba(255,107,0,0.5),
+    0 0 60px rgba(255,107,0,0.2);
+  transition: all 0.15s ease;
+  transform: translateY(0);
+}
+.glow-btn:hover .btn-inner {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 0 rgba(80,20,0,0.8),
+    0 20px 50px rgba(255,107,0,0.7),
+    0 0 100px rgba(255,107,0,0.4);
+}
+.glow-btn:active .btn-inner {
+  transform: translateY(4px);
+  box-shadow: 0 4px 0 rgba(80,20,0,0.8), 0 8px 20px rgba(255,107,0,0.4);
+}
+.glow-btn .pulse-ring {
+  position: absolute; inset: -10px;
+  border-radius: 70px;
+  border: 2px solid rgba(255,107,0,0.4);
+  animation: ringPulse 2s ease-out infinite;
+}
+@keyframes ringPulse {
+  0%   { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* ── OVERLAY EXPLOSION ── */
+#overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; opacity: 0;
+}
+#overlay.active { pointer-events: all; }
+
+#overlay-canvas {
+  position: absolute; inset: 0; z-index: 1;
+}
+
+.overlay-content {
+  position: relative; z-index: 2;
+  text-align: center;
+  transform: scale(0.5); opacity: 0;
+  transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s;
+}
+#overlay.active .overlay-content {
+  transform: scale(1); opacity: 1;
+  transition-delay: 0.3s;
+}
+
+.boo-text {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(5rem, 20vw, 12rem);
+  color: #fff;
+  text-shadow:
+    0 0 30px var(--orange),
+    0 0 80px var(--orange),
+    0 0 150px rgba(255,107,0,0.5);
+  line-height: 1;
+  animation: booPop 0.5s 0.3s both;
+}
+@keyframes booPop {
+  0%   { transform: scale(0) rotate(-10deg); }
+  70%  { transform: scale(1.15) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.boo-sub {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.2rem, 4vw, 2.5rem);
+  color: var(--gold);
+  margin-top: 10px;
+  animation: booPop 0.5s 0.6s both;
+}
+.boo-msg {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  color: rgba(240,216,192,0.8);
+  margin-top: 20px;
+  max-width: 400px;
+  animation: booPop 0.5s 0.9s both;
+}
+
+.close-overlay {
+  margin-top: 36px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,107,0,0.4);
+  color: var(--orange);
+  padding: 12px 36px;
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 1rem;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.2s;
+  animation: booPop 0.5s 1.2s both;
+}
+.close-overlay:hover {
+  background: rgba(255,107,0,0.15);
+  border-color: var(--orange);
+}
+
+/* ── FOOTER ── */
+footer {
+  position: relative; z-index: 10;
+  text-align: center;
+  padding: 30px;
+  color: rgba(240,216,192,0.2);
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+}
+
+/* ── Floating ghosts deco ── */
+.ghost-deco {
+  position: fixed; z-index: 3;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  pointer-events: none;
+  animation: ghostDrift var(--gd) ease-in-out infinite alternate;
+  opacity: 0.35;
+  filter: blur(0.5px);
+}
+@keyframes ghostDrift {
+  from { transform: translate(0, 0) rotate(-5deg); }
+  to   { transform: translate(var(--gx), var(--gy)) rotate(5deg); }
+}
+
+/* ── Scroll Reveal ── */
+.reveal {
+  opacity: 0; transform: translateY(50px);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── Candle flicker deco ── */
+.candle-row {
+  display: flex; gap: clamp(20px,5vw,60px);
+  margin-top: 40px;
+  opacity: 0; animation: riseIn 1s 2s forwards;
+}
+.candle { font-size: clamp(1.8rem, 4vw, 3rem); animation: candleFlicker var(--cf) ease-in-out infinite; }
+@keyframes candleFlicker {
+  0%,100% { filter: drop-shadow(0 0 8px #ffaa00); transform: scale(1); }
+  25%      { filter: drop-shadow(0 0 16px #ff6600); transform: scale(1.05) translateY(-2px); }
+  50%      { filter: drop-shadow(0 0 6px #ffcc00); transform: scale(0.97); }
+  75%      { filter: drop-shadow(0 0 20px #ff4400); transform: scale(1.08) translateY(-3px); }
+}
+
+/* Spiderweb corners */
+.web-corner {
+  position: fixed; font-size: clamp(3rem,8vw,6rem);
+  opacity: 0.12; pointer-events: none; z-index: 3;
+  filter: grayscale(1) brightness(2);
+}
+.web-tl { top: 0; left: 0; transform: rotate(0deg); }
+.web-tr { top: 0; right: 0; transform: scaleX(-1); }
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div id="cursor">🎃</div>
+
+<!-- Canvas Background (stars + particles) -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Moon -->
+<div class="moon"></div>
+
+<!-- Web corners -->
+<div class="web-corner web-tl">🕸️</div>
+<div class="web-corner web-tr">🕸️</div>
+
+<!-- Floating ghosts -->
+<div class="ghost-deco" style="top:15%;left:5%;--gd:4s;--gx:20px;--gy:-15px">👻</div>
+<div class="ghost-deco" style="top:40%;right:4%;--gd:5.5s;--gx:-18px;--gy:20px">👻</div>
+<div class="ghost-deco" style="top:70%;left:8%;--gd:3.8s;--gx:12px;--gy:-20px">🦇</div>
+<div class="ghost-deco" style="top:25%;right:10%;--gd:6s;--gx:-22px;--gy:10px">🕷️</div>
+
+<!-- OVERLAY -->
+<div id="overlay">
+  <canvas id="overlay-canvas"></canvas>
+  <div class="overlay-content">
+    <div class="boo-text">BOO!</div>
+    <div class="boo-sub">Happy Halloween, Dolly! 🧡</div>
+    <div class="boo-msg">You're the sweetest witch in this haunted world 🔮✨</div>
+    <button class="close-overlay" onclick="closeOverlay()">← Back to the spooky night</button>
+  </div>
+</div>
+
+<!-- ═══════════ SCENE 1: INTRO ═══════════ -->
+<section class="scene" id="scene-intro">
+  <div class="title-wrap">
+    <div class="eyebrow">✦ A haunted greeting for ✦</div>
+    <h1>
+      Happy
+      <span class="name">Halloween</span>
+    </h1>
+    <p class="subtitle">Dolly, this night was made for you 🌙</p>
+  </div>
+
+  <div class="pumpkin-row">
+    <div class="pumpkin" style="--pb:2.1s" title="Click me!">🎃</div>
+    <div class="pumpkin" style="--pb:1.7s;font-size:clamp(4rem,9vw,6.5rem);animation-delay:.3s">🎃</div>
+    <div class="pumpkin" style="--pb:2.4s;animation-delay:.6s">🎃</div>
+  </div>
+
+  <div class="candle-row">
+    <div class="candle" style="--cf:1.9s">🕯️</div>
+    <div class="candle" style="--cf:2.3s;animation-delay:.4s">🕯️</div>
+    <div class="candle" style="--cf:1.6s;animation-delay:.8s">🕯️</div>
+    <div class="candle" style="--cf:2.1s;animation-delay:.2s">🕯️</div>
+    <div class="candle" style="--cf:1.8s;animation-delay:.6s">🕯️</div>
+  </div>
+
+  <div class="scroll-hint" onclick="document.getElementById('scene-message').scrollIntoView({behavior:'smooth'})">
+    Scroll
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ═══════════ SCENE 2: MESSAGE ═══════════ -->
+<section class="scene" id="scene-message">
+  <div class="message-card reveal">
+    <div class="card-header">🎃 Dear Dolly 🎃</div>
+    <div class="card-body">
+      <p>On this most <em>bewitching</em> of nights,<br>
+      the stars carved your name into the sky 🌟</p>
+
+      <div class="divider">🦇 · 🕸️ · 🦇</div>
+
+      <p>Distance means nothing when someone<br>
+      <strong>haunts your heart</strong> the way you haunt mine 👻</p>
+
+      <p>May your Halloween be filled with<br>
+      <em>magic</em>, <em>mystery</em>, and moments<br>
+      as beautiful as you are 🍂✨</p>
+
+      <div class="divider">🕯️ · 🌙 · 🕯️</div>
+
+      <p>Wishing I was there to celebrate<br>
+      this spooky night with you, Dolly 🧡</p>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:40px;opacity:0;animation:riseIn 1s 0.3s forwards" class="reveal">
+    <div style="font-size:clamp(2.5rem,6vw,4rem);letter-spacing:12px;filter:drop-shadow(0 0 15px rgba(255,107,0,0.5))">
+      🎃 👻 🦇 🕷️ 🕸️ 🌙 ⭐
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SCENE 3: SURPRISE BUTTON ═══════════ -->
+<section class="scene" id="scene-surprise">
+  <div class="surprise-wrap reveal">
+    <div class="surprise-label">✦ One last thing, Dolly… ✦</div>
+    <button class="glow-btn" onclick="triggerExplosion()">
+      <div class="pulse-ring"></div>
+      <div class="btn-inner">🎃 Your Halloween Surprise 🎃</div>
+    </button>
+    <p style="margin-top:24px;font-style:italic;opacity:0.4;font-size:0.9rem">
+      (dare to tap it...)
+    </p>
+  </div>
+</section>
+
+<footer>🕯️ Made with love & dark magic · Happy Halloween Dolly 🕯️</footer>
+
+<script>
+/* ══════════════════════════════════
+   CURSOR
+══════════════════════════════════ */
+const cursor = document.getElementById('cursor');
+const trailEmojis = ['🎃','👻','🦇','⭐','✨','🍂'];
+const trails = [];
+const TRAIL_LEN = 8;
+let mx = -200, my = -200;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+  addTrail(mx, my);
+});
+
+function addTrail(x, y) {
+  const dot = document.createElement('div');
+  dot.style.cssText = `
+    position:fixed;left:${x}px;top:${y}px;
+    pointer-events:none;z-index:99997;
+    font-size:${12+Math.random()*10}px;
+    transform:translate(-50%,-50%);
+    transition:opacity 0.6s;
+    opacity:0.7;
+  `;
+  dot.textContent = trailEmojis[Math.floor(Math.random()*trailEmojis.length)];
+  document.body.appendChild(dot);
+  setTimeout(() => { dot.style.opacity = '0'; }, 50);
+  setTimeout(() => { dot.remove(); }, 650);
+}
+
+/* ══════════════════════════════════
+   CANVAS BACKGROUND (Stars + Bats)
+══════════════════════════════════ */
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+
+let W, H;
+function resize() {
+  W = bgCanvas.width = window.innerWidth;
+  H = bgCanvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Stars
+const stars = Array.from({length: 180}, () => ({
+  x: Math.random(), y: Math.random(),
+  r: Math.random() * 1.8 + 0.3,
+  a: Math.random(),
+  da: (Math.random() * 0.005 + 0.002) * (Math.random() < 0.5 ? 1 : -1),
+  color: Math.random() < 0.1 ? '#f5c842' : '#ffffff'
+}));
+
+// Bats
+const bats = Array.from({length: 7}, (_, i) => ({
+  x: Math.random() * W,
+  y: 60 + Math.random() * H * 0.35,
+  vx: (0.6 + Math.random() * 1.2) * (Math.random() < 0.5 ? 1 : -1),
+  vy: 0,
+  frame: Math.floor(Math.random() * 6),
+  tick: 0,
+  size: 0.7 + Math.random() * 0.8
+}));
+
+function drawBat(ctx, x, y, size, wingUp) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size, size);
+  ctx.fillStyle = 'rgba(80,0,100,0.7)';
+  ctx.beginPath();
+  if (wingUp) {
+    // body
+    ctx.ellipse(0, 0, 5, 4, 0, 0, Math.PI*2);
+    ctx.fill();
+    // left wing up
+    ctx.beginPath();
+    ctx.moveTo(-4, -2);
+    ctx.bezierCurveTo(-16, -18, -24, -8, -20, 2);
+    ctx.bezierCurveTo(-14, -2, -8, 0, -4, -2);
+    ctx.fill();
+    // right wing up
+    ctx.beginPath();
+    ctx.moveTo(4, -2);
+    ctx.bezierCurveTo(16, -18, 24, -8, 20, 2);
+    ctx.bezierCurveTo(14, -2, 8, 0, 4, -2);
+    ctx.fill();
+  } else {
+    ctx.ellipse(0, 0, 5, 4, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-4, 2);
+    ctx.bezierCurveTo(-16, 12, -20, 6, -18, -2);
+    ctx.bezierCurveTo(-12, 2, -6, 2, -4, 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(4, 2);
+    ctx.bezierCurveTo(16, 12, 20, 6, 18, -2);
+    ctx.bezierCurveTo(12, 2, 6, 2, 4, 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function animBG() {
+  bgCtx.clearRect(0, 0, W, H);
+
+  // Stars
+  stars.forEach(s => {
+    s.a += s.da;
+    if (s.a > 1) s.da = -Math.abs(s.da);
+    if (s.a < 0.1) s.da = Math.abs(s.da);
+    bgCtx.beginPath();
+    bgCtx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
+    bgCtx.fillStyle = s.color;
+    bgCtx.globalAlpha = s.a;
+    bgCtx.fill();
+    bgCtx.globalAlpha = 1;
+  });
+
+  // Bats
+  bats.forEach(b => {
+    b.tick++;
+    b.frame = Math.floor(b.tick / 8) % 2;
+    b.x += b.vx;
+    b.y += Math.sin(b.tick * 0.03) * 0.5;
+    if (b.x > W + 40) b.x = -40;
+    if (b.x < -40) b.x = W + 40;
+    bgCtx.globalAlpha = 0.65;
+    bgCtx.save();
+    if (b.vx < 0) { bgCtx.scale(-1, 1); drawBat(bgCtx, -b.x, b.y, b.size, b.frame === 0); }
+    else drawBat(bgCtx, b.x, b.y, b.size, b.frame === 0);
+    bgCtx.restore();
+    bgCtx.globalAlpha = 1;
+  });
+
+  // Fog layers
+  const grad = bgCtx.createLinearGradient(0, H * 0.72, 0, H);
+  grad.addColorStop(0, 'transparent');
+  grad.addColorStop(1, 'rgba(30,0,60,0.18)');
+  bgCtx.fillStyle = grad;
+  bgCtx.fillRect(0, H * 0.72, W, H * 0.28);
+
+  requestAnimationFrame(animBG);
+}
+animBG();
+
+/* ══════════════════════════════════
+   SCROLL REVEAL
+══════════════════════════════════ */
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.15 });
+revealEls.forEach(el => io.observe(el));
+
+/* ══════════════════════════════════
+   PUMPKIN CLICK EASTER EGG
+══════════════════════════════════ */
+document.querySelectorAll('.pumpkin').forEach(p => {
+  p.addEventListener('click', () => {
+    const emojis = ['💀','👽','🧙','🕯️','🔮','🧛','🌕'];
+    const e = document.createElement('span');
+    e.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    const rect = p.getBoundingClientRect();
+    e.style.cssText = `
+      position:fixed;left:${rect.left+rect.width/2}px;top:${rect.top}px;
+      font-size:2.5rem;pointer-events:none;z-index:500;
+      transform:translate(-50%,-50%);
+      animation:floatAway 1.2s forwards;
+    `;
+    document.body.appendChild(e);
+    setTimeout(() => e.remove(), 1200);
+  });
+});
+
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes floatAway {
+    from { opacity:1; transform:translate(-50%,-50%) scale(0.5); }
+    to   { opacity:0; transform:translate(-50%,-300%) scale(1.4); }
+  }
+`;
+document.head.appendChild(style);
+
+/* ══════════════════════════════════
+   EXPLOSION / OVERLAY
+══════════════════════════════════ */
+const overlay = document.getElementById('overlay');
+const ovCanvas = document.getElementById('overlay-canvas');
+const ovCtx = ovCanvas.getContext('2d');
+let particles = [];
+let ovAnim = null;
+
+function triggerExplosion() {
+  overlay.style.opacity = '1';
+  overlay.classList.add('active');
+  ovCanvas.width = window.innerWidth;
+  ovCanvas.height = window.innerHeight;
+  spawnParticles();
+  animOverlay();
+}
+
+function spawnParticles() {
+  particles = [];
+  const CX = window.innerWidth / 2;
+  const CY = window.innerHeight / 2;
+  const emojis = ['🎃','👻','🦇','🕷️','🍬','🍭','⭐','✨','🌙','🕸️','🧡','🖤','🔮','🧙','💜'];
+  for (let i = 0; i < 80; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 3 + Math.random() * 8;
+    particles.push({
+      x: CX, y: CY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 4,
+      g: 0.15 + Math.random() * 0.1,
+      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      size: 20 + Math.random() * 24,
+      life: 1, decay: 0.012 + Math.random() * 0.008,
+      rot: Math.random() * 360,
+      rotV: (Math.random() - 0.5) * 8
+    });
+  }
+}
+
+function animOverlay() {
+  ovCtx.clearRect(0, 0, ovCanvas.width, ovCanvas.height);
+  // Dark BG
+  ovCtx.fillStyle = 'rgba(10,0,16,0.88)';
+  ovCtx.fillRect(0, 0, ovCanvas.width, ovCanvas.height);
+
+  let alive = false;
+  particles.forEach(p => {
+    if (p.life <= 0) return;
+    alive = true;
+    p.x += p.vx; p.y += p.vy; p.vy += p.g;
+    p.vx *= 0.99; p.life -= p.decay;
+    p.rot += p.rotV;
+    ovCtx.save();
+    ovCtx.globalAlpha = Math.max(0, p.life);
+    ovCtx.font = `${p.size}px serif`;
+    ovCtx.translate(p.x, p.y);
+    ovCtx.rotate(p.rot * Math.PI / 180);
+    ovCtx.fillText(p.emoji, -p.size/2, p.size/2);
+    ovCtx.restore();
+  });
+
+  if (alive) ovAnim = requestAnimationFrame(animOverlay);
+}
+
+function closeOverlay() {
+  overlay.style.opacity = '0';
+  setTimeout(() => overlay.classList.remove('active'), 400);
+  if (ovAnim) cancelAnimationFrame(ovAnim);
+}
+
+/* ══════════════════════════════════
+   TOUCH support
+══════════════════════════════════ */
+document.addEventListener('touchmove', e => {
+  const t = e.touches[0];
+  mx = t.clientX; my = t.clientY;
+}, { passive: true });
+</script>
+</body>
+</html>
